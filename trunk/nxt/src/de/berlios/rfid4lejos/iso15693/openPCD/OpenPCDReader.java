@@ -4,13 +4,16 @@ import com.nodetypes.utils.byteTypes.BLong;
 
 import lejos.nxt.I2CPort;
 import lejos.nxt.I2CSensor;
+import de.berlios.rfid4lejos.iso15693.api.CommunicationException;
 import de.berlios.rfid4lejos.iso15693.api.ISO15693Tag;
 import de.berlios.rfid4lejos.iso15693.api.RFIDReader;
+import de.berlios.rfid4lejos.iso15693.api.ReaderStateException;
 import de.berlios.rfid4lejos.iso15693.api.TagFactory;
 
 /**
- * check parameters and active state, maybe should throw exceptions:
- * communicationError, readerStateError, ...
+ * TODO: check parameters, read/write return always true if no exception occurs
+ * 
+ * @author Arne Bosien
  */
 public class OpenPCDReader extends I2CSensor implements RFIDReader {
 
@@ -39,7 +42,7 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		active = false;
 	}
 
-	public void deactivate() {
+	public synchronized void deactivate() {
 		sendData(CMD_RDROFF, (byte) 0);
 		try {
 			Thread.sleep(sleeptime);
@@ -49,7 +52,7 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		active = false;
 	}
 
-	public void activate() {
+	public synchronized void activate() {
 		sendData(CMD_RDRON, (byte) 0);
 		try {
 			Thread.sleep(sleeptime);
@@ -59,13 +62,17 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		active = true;
 	}
 
-	public ISO15693Tag[] inventory() {
+	public synchronized ISO15693Tag[] inventory() throws ReaderStateException,
+			CommunicationException {
+		if (!isActive())
+			throw new ReaderStateException();
+
 		byte[] recData = new byte[8 * 8 + 1];
 		int length = 0;
 
 		// get data
 		if (getData(CMD_GETINVENTORY, recData, length) != 0) {
-			return null;
+			throw new CommunicationException();
 		}
 
 		// create tags
@@ -80,11 +87,16 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		return tags;
 	}
 
-	public boolean readTagData(ISO15693Tag rfidTag) {
+	public boolean readTagData(ISO15693Tag rfidTag)
+			throws ReaderStateException, CommunicationException {
 		return readTagData(rfidTag, 0, rfidTag.getTagCapacity());
 	}
 
-	public boolean readTagData(ISO15693Tag rfidTag, int startByte, int length) {
+	public synchronized boolean readTagData(ISO15693Tag rfidTag, int startByte,
+			int length) throws ReaderStateException, CommunicationException {
+		if (!isActive())
+			throw new ReaderStateException();
+
 		// TODO: fix this workaround
 		startByte = 0;
 		length = length + startByte;
@@ -94,14 +106,14 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		byte[] sendData = BLong.toByteArray(rfidTag.getID(), true);
 
 		if (sendData(CMD_WRITETAGID, sendData, sendData.length) != 0) {
-			return false;
+			throw new CommunicationException();
 		}
 
 		// receive tag data
 		byte[] recData = new byte[1 + length];
 		int recLength = 0;
 		if (getData(CMD_READTAG, recData, recLength) != 0) {
-			return false;
+			throw new CommunicationException();
 		}
 
 		// copy received data to tag
@@ -110,19 +122,24 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 			System.arraycopy(sendData, 1, tagData, 0, tagData.length);
 			rfidTag.setContents(startByte, recData);
 		} else {
-			return false;
+			throw new ReaderStateException();
 		}
 
 		return true;
 	}
 
-	public boolean writeTagData(ISO15693Tag rfidTag, int startByte, int length) {
+	public synchronized boolean writeTagData(ISO15693Tag rfidTag,
+			int startByte, int length) throws ReaderStateException,
+			CommunicationException {
+		if (!isActive())
+			throw new ReaderStateException();
+
 		byte[] sendData;
 
 		// send tag ID
 		sendData = BLong.toByteArray(rfidTag.getID(), true);
 		if (sendData(CMD_WRITETAGID, sendData, sendData.length) != 0) {
-			return false;
+			throw new CommunicationException();
 		}
 
 		// send tag contents
@@ -135,7 +152,7 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		}
 
 		if (sendData(CMD_WRITETAG, sendData, length) != 0) {
-			return false;
+			throw new CommunicationException();
 		}
 
 		return true;
