@@ -67,21 +67,24 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		if (!isActive())
 			throw new ReaderStateException();
 
-		byte[] recData = new byte[8 * 8 + 1];
-		int length = 0;
+		byte[] recData = new byte[8 * 8 + 2];
 
 		// get data
-		if (getData(CMD_GETINVENTORY, recData, length) != 0) {
+		if (getData(CMD_GETINVENTORY, recData, recData.length) != 0) {
 			throw new CommunicationException();
 		}
 
+		if (recData[0] != STAT_OK) {
+			throw new ReaderStateException();
+		}
+
 		// create tags
-		ISO15693Tag[] tags = new ISO15693Tag[(length - 1) / 8];
+		ISO15693Tag[] tags = new ISO15693Tag[recData[1]];
 		byte[] id = new byte[8];
 
 		for (int i = 0; i < tags.length; i++) {
-			System.arraycopy(recData, 1 + i * 8, id, 0, 8);
-			tags[i] = tagFactory.createTag(recData);
+			System.arraycopy(recData, 2 + i * 8, id, 0, 8);
+			tags[i] = tagFactory.createTag(id);
 		}
 
 		return tags;
@@ -98,8 +101,8 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 			throw new ReaderStateException();
 
 		// TODO: fix this workaround
-		startByte = 0;
 		length = length + startByte;
+		startByte = 0;
 		// end workaround
 
 		// send tag ID
@@ -111,14 +114,14 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 
 		// receive tag data
 		byte[] recData = new byte[1 + length];
-		int recLength = 0;
-		if (getData(CMD_READTAG, recData, recLength) != 0) {
+		// int recLength = 0;
+		if (getData(CMD_READTAG, recData, recData.length) != 0) {
 			throw new CommunicationException();
 		}
 
 		// copy received data to tag
 		if (recData[0] == STAT_OK) {
-			byte[] tagData = new byte[recLength - 1];
+			byte[] tagData = new byte[length];
 			System.arraycopy(sendData, 1, tagData, 0, tagData.length);
 			rfidTag.setContents(startByte, recData);
 		} else {
@@ -134,6 +137,11 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		if (!isActive())
 			throw new ReaderStateException();
 
+		// TODO: fix this workaround
+		length = length + startByte;
+		startByte = 0;
+		// end workaround
+
 		byte[] sendData;
 
 		// send tag ID
@@ -146,12 +154,12 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		if (startByte != 0) {
 			sendData = new byte[length];
 			System.arraycopy(rfidTag.getContents(), startByte, sendData, 0,
-					length);
+					sendData.length);
 		} else {
 			sendData = rfidTag.getContents();
 		}
 
-		if (sendData(CMD_WRITETAG, sendData, length) != 0) {
+		if (sendData(CMD_WRITETAG, sendData, sendData.length) != 0) {
 			throw new CommunicationException();
 		}
 
