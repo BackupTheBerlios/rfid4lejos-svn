@@ -11,13 +11,13 @@ import de.berlios.rfid4lejos.iso15693.api.TagFactory;
 import de.berlios.rfid4lejos.iso15693.openPCD.OpenPCDReader;
 
 /**
- * Test class for communication with RFID OpenPCD reader
+ * Test class for communication with two RFID OpenPCD reader
  * 
  * @author Arne Bosien
  * 
  */
-public class TestOpenPCD implements ButtonListener {
-	public TestOpenPCD() {
+public class TestOpenPCD2 implements ButtonListener {
+	public TestOpenPCD2() {
 		Button.ESCAPE.addButtonListener(this);
 
 		int counter = 0;
@@ -25,15 +25,17 @@ public class TestOpenPCD implements ButtonListener {
 		TagFactory tf = new RFIDTagFactory();
 		ISO15693Tag[] tags;
 
-		OpenPCDReader reader = new OpenPCDReader(SensorPort.S1, tf);
+		OpenPCDReader reader1 = new OpenPCDReader(SensorPort.S1, tf);
+		OpenPCDReader reader2 = new OpenPCDReader(SensorPort.S4, tf);
 
-		reader.activate();
 
 		while (true) {
 			try {
-				// do inventory
-				tags = reader.inventory();
-
+				// do inventory for first reader
+				reader1.activate();
+				tags = reader1.inventory();
+				reader1.deactivate();
+				
 				// print IDs
 				LCD.clear();
 				LCD.drawString("IDs " + tags.length + " " + counter, 0, 0);
@@ -42,7 +44,20 @@ public class TestOpenPCD implements ButtonListener {
 							0, 1 + i % 6);
 				}
 				LCD.refresh();
-
+				
+				// do inventory for second reader
+				reader2.activate();
+				tags = reader2.inventory();
+				reader2.deactivate();
+				
+				// print IDs
+				LCD.drawString("IDs " + tags.length + " " + counter, 0, 4);
+				for (int i = 0; i < tags.length; i++) {
+					LCD.drawString(ByteFormatter.toHexString(tags[i].getID()),
+							0, 5 + i % 6);
+				}
+				LCD.refresh();
+				
 			} catch (ReaderStateException e) {
 				LCD.clear();
 				LCD.drawString("RSEx", 1, 1);
@@ -62,7 +77,7 @@ public class TestOpenPCD implements ButtonListener {
 	}
 
 	public static void main(String[] args) {
-		new TestOpenPCD();
+		new TestOpenPCD2();
 
 	} // main
 

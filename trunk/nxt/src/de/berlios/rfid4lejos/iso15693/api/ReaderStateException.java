@@ -7,5 +7,10 @@ package de.berlios.rfid4lejos.iso15693.api;
  * 
  */
 public class ReaderStateException extends Exception {
-
+	public ReaderStateException(String msg){
+		super(msg);
+	}
+	
+	public ReaderStateException(){
+	}
 }

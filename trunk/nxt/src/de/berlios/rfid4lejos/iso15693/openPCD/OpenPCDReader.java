@@ -1,14 +1,16 @@
 package de.berlios.rfid4lejos.iso15693.openPCD;
 
-import com.nodetypes.utils.byteTypes.BLong;
-
 import lejos.nxt.I2CPort;
 import lejos.nxt.I2CSensor;
+
+import com.nodetypes.utils.byteTypes.BLong;
+
 import de.berlios.rfid4lejos.iso15693.api.CommunicationException;
 import de.berlios.rfid4lejos.iso15693.api.ISO15693Tag;
 import de.berlios.rfid4lejos.iso15693.api.RFIDReader;
 import de.berlios.rfid4lejos.iso15693.api.ReaderStateException;
 import de.berlios.rfid4lejos.iso15693.api.TagFactory;
+import de.berlios.rfid4lejos.iso15693.test.ByteFormatter;
 
 /**
  * TODO: check parameters, read/write return always true if no exception occurs
@@ -21,15 +23,15 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 	private static final int CMD_WRITETAGID = 0x43;
 	private static final int CMD_READTAG = 0x44;
 	private static final int CMD_WRITETAG = 0x45;
-	private static final int CMD_READSTATUSCODE = 0x46;
+	// private static final int CMD_READSTATUSCODE = 0x46;
 	private static final int CMD_RDROFF = 0x47;
 	private static final int CMD_RDRON = 0x48;
 
 	private static final byte STAT_OK = 0x00;
-	private static final byte STAT_BUSY = 0x01;
-	private static final byte STAT_FAIL = 0x02;
+	// private static final byte STAT_BUSY = 0x01;
+	// private static final byte STAT_FAIL = 0x02;
 
-	private static final int ERR_UNKNOWN = 0xFF;
+	// private static final int ERR_UNKNOWN = 0xFF;
 	private static final int sleeptime = 20;
 
 	private boolean active;
@@ -65,7 +67,8 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 	public synchronized ISO15693Tag[] inventory() throws ReaderStateException,
 			CommunicationException {
 		if (!isActive())
-			throw new ReaderStateException();
+			throw new ReaderStateException(
+					"inventory failed, reader is not active");
 
 		byte[] recData = new byte[8 * 8 + 2];
 
@@ -75,14 +78,15 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		}
 
 		if (recData[0] != STAT_OK) {
-			throw new ReaderStateException();
+			throw new ReaderStateException("inventory failed, Stat: "
+					+ recData[0]);
 		}
 
 		// create tags
 		ISO15693Tag[] tags = new ISO15693Tag[recData[1]];
 		byte[] id = new byte[8];
 
-		for (int i = 0; i < tags.length; i++) {
+		for (int i = 0; i < tags.length && 2 + i * 8 + 8 < 8 * 8 + 2; i++) {
 			System.arraycopy(recData, 2 + i * 8, id, 0, 8);
 			tags[i] = tagFactory.createTag(id);
 		}
@@ -98,10 +102,11 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 	public synchronized boolean readTagData(ISO15693Tag rfidTag, int startByte,
 			int length) throws ReaderStateException, CommunicationException {
 		if (!isActive())
-			throw new ReaderStateException();
+			throw new ReaderStateException(
+					"reading failed, reader is not active");
 
 		// TODO: fix this workaround
-		length = length + startByte;
+		length += startByte;
 		startByte = 0;
 		// end workaround
 
@@ -114,7 +119,7 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 
 		// receive tag data
 		byte[] recData = new byte[1 + length];
-		// int recLength = 0;
+
 		if (getData(CMD_READTAG, recData, recData.length) != 0) {
 			throw new CommunicationException();
 		}
@@ -122,10 +127,12 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		// copy received data to tag
 		if (recData[0] == STAT_OK) {
 			byte[] tagData = new byte[length];
-			System.arraycopy(sendData, 1, tagData, 0, tagData.length);
-			rfidTag.setContents(startByte, recData);
+			System.arraycopy(recData, 1, tagData, 0, tagData.length);
+			rfidTag.setContents(startByte, tagData);
 		} else {
-			throw new ReaderStateException();
+			throw new ReaderStateException("couldn't read tag "
+					+ ByteFormatter.toHexString(rfidTag.getID()) + " Stat: "
+					+ recData[0]);
 		}
 
 		return true;
@@ -135,7 +142,8 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 			int startByte, int length) throws ReaderStateException,
 			CommunicationException {
 		if (!isActive())
-			throw new ReaderStateException();
+			throw new ReaderStateException(
+					"writing failed, reader is not active");
 
 		// TODO: fix this workaround
 		length = length + startByte;
