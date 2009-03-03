@@ -25,7 +25,7 @@ public class TestOpenPCD implements ButtonListener {
 		TagFactory tf = new RFIDTagFactory();
 		ISO15693Tag[] tags;
 
-		OpenPCDReader reader = new OpenPCDReader(SensorPort.S1, tf);
+		OpenPCDReader reader = new OpenPCDReader("", SensorPort.S1, tf);
 
 		reader.activate();
 

@@ -8,7 +8,7 @@ import de.berlios.rfid4lejos.iso15693.api.TagFactory;
 public class RFIDTagFactory extends TagFactory {
 
 	public ISO15693Tag createTag(byte[] id) {
-		return new RFIDTag(BLong.fromByteArray(id, true));
+		return new RFIDTag(BLong.fromByteArray(id, false));
 	}
 
 }

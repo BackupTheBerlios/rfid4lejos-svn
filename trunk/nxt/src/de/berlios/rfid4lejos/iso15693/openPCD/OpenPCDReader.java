@@ -36,9 +36,11 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 
 	private boolean active;
 	private TagFactory tagFactory;
+	private String name;
 
-	public OpenPCDReader(I2CPort port, TagFactory tagFactory) {
+	public OpenPCDReader(String name, I2CPort port, TagFactory tagFactory) {
 		super(port);
+		this.name = name;
 
 		this.tagFactory = tagFactory;
 		active = false;
@@ -111,7 +113,7 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		// end workaround
 
 		// send tag ID
-		byte[] sendData = BLong.toByteArray(rfidTag.getID(), true);
+		byte[] sendData = BLong.toByteArray(rfidTag.getID(), false);
 
 		if (sendData(CMD_WRITETAGID, sendData, sendData.length) != 0) {
 			throw new CommunicationException();
@@ -153,7 +155,7 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 		byte[] sendData;
 
 		// send tag ID
-		sendData = BLong.toByteArray(rfidTag.getID(), true);
+		sendData = BLong.toByteArray(rfidTag.getID(), false);
 		if (sendData(CMD_WRITETAGID, sendData, sendData.length) != 0) {
 			throw new CommunicationException();
 		}
@@ -176,6 +178,10 @@ public class OpenPCDReader extends I2CSensor implements RFIDReader {
 
 	public boolean isActive() {
 		return active;
+	}
+
+	public String getName() {
+		return name;
 	}
 
 }

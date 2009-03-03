@@ -28,7 +28,7 @@ public class TestOpenPCD3 implements ButtonListener {
 		TagFactory tf = new RFIDTagFactory();
 		ISO15693Tag[] tags;
 
-		OpenPCDReader reader1 = new OpenPCDReader(SensorPort.S1, tf);
+		OpenPCDReader reader1 = new OpenPCDReader("",SensorPort.S1, tf);
 		byte[] data;
 
 		while (true) {
@@ -53,6 +53,7 @@ public class TestOpenPCD3 implements ButtonListener {
 
 				// read contents of all tags
 				for (int i = 0; i < tags.length; i++) {
+					tags[i].erase();
 					reader1.readTagData(tags[i], 0, data.length);
 
 					LCD.drawString(ByteFormatter.toHexString(tags[i].getID()),

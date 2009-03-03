@@ -15,7 +15,8 @@ public interface RFIDReader {
 	 *             if is not active
 	 * @return all found tags in range of he RFID reader
 	 */
-	public ISO15693Tag[] inventory() throws ReaderStateException, CommunicationException;
+	public ISO15693Tag[] inventory() throws ReaderStateException,
+			CommunicationException;
 
 	/**
 	 * updates the whole data field of given tag
@@ -25,7 +26,8 @@ public interface RFIDReader {
 	 * @param rfidTag
 	 * @return true if update was successful
 	 */
-	public boolean readTagData(ISO15693Tag rfidTag) throws ReaderStateException, CommunicationException;
+	public boolean readTagData(ISO15693Tag rfidTag)
+			throws ReaderStateException, CommunicationException;
 
 	/**
 	 * @throws ReaderStateException
@@ -73,5 +75,10 @@ public interface RFIDReader {
 	 * @return true if reader is active
 	 */
 	public boolean isActive();
+
+	/**
+	 * @return name of RFID reader
+	 */
+	public String getName();
 
 }

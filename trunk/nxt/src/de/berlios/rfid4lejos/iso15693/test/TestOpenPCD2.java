@@ -25,9 +25,8 @@ public class TestOpenPCD2 implements ButtonListener {
 		TagFactory tf = new RFIDTagFactory();
 		ISO15693Tag[] tags;
 
-		OpenPCDReader reader1 = new OpenPCDReader(SensorPort.S1, tf);
-		OpenPCDReader reader2 = new OpenPCDReader(SensorPort.S4, tf);
-
+		OpenPCDReader reader1 = new OpenPCDReader("", SensorPort.S1, tf);
+		OpenPCDReader reader2 = new OpenPCDReader("", SensorPort.S4, tf);
 
 		while (true) {
 			try {
@@ -35,7 +34,7 @@ public class TestOpenPCD2 implements ButtonListener {
 				reader1.activate();
 				tags = reader1.inventory();
 				reader1.deactivate();
-				
+
 				// print IDs
 				LCD.clear();
 				LCD.drawString("IDs " + tags.length + " " + counter, 0, 0);
@@ -44,12 +43,12 @@ public class TestOpenPCD2 implements ButtonListener {
 							0, 1 + i % 6);
 				}
 				LCD.refresh();
-				
+
 				// do inventory for second reader
 				reader2.activate();
 				tags = reader2.inventory();
 				reader2.deactivate();
-				
+
 				// print IDs
 				LCD.drawString("IDs " + tags.length + " " + counter, 0, 4);
 				for (int i = 0; i < tags.length; i++) {
@@ -57,7 +56,7 @@ public class TestOpenPCD2 implements ButtonListener {
 							0, 5 + i % 6);
 				}
 				LCD.refresh();
-				
+
 			} catch (ReaderStateException e) {
 				LCD.clear();
 				LCD.drawString("RSEx", 1, 1);
