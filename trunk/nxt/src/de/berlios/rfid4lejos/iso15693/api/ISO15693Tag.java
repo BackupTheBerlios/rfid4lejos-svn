@@ -14,6 +14,7 @@ public interface ISO15693Tag {
 	 * @see RFIDReader#readTagData(ISO15693Tag)
 	 * @see RFIDReader#readTagData(ISO15693Tag, int, int)
 	 * @see RFIDReader#writeTagData(ISO15693Tag, int, int)
+	 * @see #isDirty()
 	 * 
 	 * @return content of tag
 	 */
@@ -33,6 +34,14 @@ public interface ISO15693Tag {
 	 *            data to be copied
 	 */
 	public void setContents(int startByte, byte[] data);
+
+	/**
+	 * copies given data to tag contents
+	 * 
+	 * @param startByte
+	 * @param data
+	 */
+	public void setContents(int startByte, byte data);
 
 	/**
 	 * 0x00 means unknown
@@ -55,5 +64,23 @@ public interface ISO15693Tag {
 	 * @return no of writable blocks
 	 */
 	public int getNoOfBlocks();
+
+	/**
+	 * a tags is <i>dirty</i> if contents does not reflect the contents of the
+	 * real tag. E.g. the real tag data has never been read or the tag data has
+	 * been touched but not written to the real tag
+	 * 
+	 * @return true if the tags is not in sync with real tag
+	 */
+	public boolean isDirty();
+
+	/**
+	 * change dirty values (e.g. after tags has been written or read)
+	 * 
+	 * @see #isDirty()
+	 * @param dirty
+	 *            new value, false if it's not dirty
+	 */
+	public void setIsDirty(boolean dirty);
 
 }

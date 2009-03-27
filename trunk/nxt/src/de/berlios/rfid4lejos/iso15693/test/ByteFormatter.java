@@ -21,6 +21,16 @@ public class ByteFormatter {
 		return strArray[(b >> 4) & 0xF] + strArray[b & 0x0F];
 	}
 
+	public static String toHexString(byte[] b) {
+		StringBuffer sb = new StringBuffer(16);
+
+		for (int i = 0; i < b.length; i++) {
+			sb.append(toHexString(b[i]));
+		}
+
+		return sb.toString();
+	}
+
 	public static String toHexString(long l) {
 		StringBuffer sb = new StringBuffer(16);
 		for (int i = 0; i < 8; i++) {

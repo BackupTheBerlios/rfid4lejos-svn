@@ -11,16 +11,19 @@ import de.berlios.rfid4lejos.iso15693.api.ISO15693Tag;
 public class RFIDTag implements ISO15693Tag {
 	private long ID;
 	private byte[] contents;
+	private boolean dirty;
 
 	public RFIDTag(long ID) {
 		this.ID = ID;
 
 		contents = new byte[128];
+		dirty = true;
 	}
 
 	public void erase() {
 		for (int i = 0; i < contents.length; i++)
 			contents[i] = 0;
+		dirty = true;
 	}
 
 	public int getBlockSize() {
@@ -53,6 +56,21 @@ public class RFIDTag implements ISO15693Tag {
 				: contents.length - startByte;
 
 		System.arraycopy(data, 0, contents, startByte, length);
+		dirty = true;
+	}
+
+	public boolean isDirty() {
+		return dirty;
+	}
+
+	public void setIsDirty(boolean dirty) {
+		this.dirty = dirty;
+		
+	}
+
+	public void setContents(int startByte, byte data) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
