@@ -65,12 +65,13 @@ public class RFIDTag implements ISO15693Tag {
 
 	public void setIsDirty(boolean dirty) {
 		this.dirty = dirty;
-		
+
 	}
 
 	public void setContents(int startByte, byte data) {
-		// TODO Auto-generated method stub
-		
+		contents[startByte] = data;
+		dirty = true;
+
 	}
 
 }
