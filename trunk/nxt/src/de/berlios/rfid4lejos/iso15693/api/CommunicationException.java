@@ -7,5 +7,11 @@ package de.berlios.rfid4lejos.iso15693.api;
  * 
  */
 public class CommunicationException extends Exception {
+	public CommunicationException(String msg) {
+		super(msg);
+	}
 
+	public CommunicationException() {
+		super();
+	}
 }
