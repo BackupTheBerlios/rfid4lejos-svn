@@ -40,4 +40,14 @@ public class ByteFormatter {
 
 		return sb.toString();
 	}
+
+	public static String toHexString(int l) {
+		StringBuffer sb = new StringBuffer(16);
+		for (int i = 0; i < 4; i++) {
+			sb.append(strArray[(int) ((l >> 8 * (8 - i - 1) + 4) & 0xF)]);
+			sb.append(strArray[(int) ((l >> 8 * (8 - i - 1)) & 0xF)]);
+		}
+
+		return sb.toString();
+	}
 }
